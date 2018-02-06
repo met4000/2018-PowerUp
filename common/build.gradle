@@ -5,6 +5,9 @@ model {
     components {
         curtinFrcCommon(NativeLibrarySpec) {
             targetPlatform 'roborio'
+            binaries.all {
+                if (it instanceof SharedLibraryBinarySpec) it.buildable = false   // This library should be static only
+            }
             sources.cpp {
                 source {
                     srcDir 'src/cpp'
@@ -18,6 +21,7 @@ model {
                 lib library: "wpilib"
                 lib library: "ctre"
                 lib library: "navx"
+                lib library: "pathfinder"
             }
         }
     }

@@ -1,25 +1,35 @@
+// Shared headers
 #include "curtinfrc/math.h"
-#include "curtinfrc/drivetrain.h" // Shared drivetrain in commons
+#include "curtinfrc/drivetrain.h"
+#include "curtinfrc/strategy/mp_strategy.h"
 #include "WPILib.h"
+
+// Robot part classes
 #include "IO.h"
-#include "Lift.h"
+#include "Belev.h"
 #include "Map.h"
-// #include "Claw.h"
-// #include "Intake.h"
+#include "Intake.h"
+#include "Winch.h"
+#include "ControlMap.h"
+#include "DriveStarategy.h"
+
+// Other required libraries
+#include <string>
+#include <SmartDashboard/SmartDashboard.h>
 #include <iostream>
+#include <stdint.h>
+#include <cmath>
 
 using namespace frc; // WPILib classes/functions
 using namespace std;
 
-class Robot : public IterativeRobot {
+class Robot : public TimedRobot {
 public:
-  Drivetrain<2> *drive;
-  double throttle;
-  bool toggle_left_bumper, toggle_right_bumper;
+  Drivetrain *drive;
 
-  LiftControl *lift;
-  // ClawControl *claw;
-  // IntakeControl *intake;
+  BelevatorControl *belev;
+  WinchControl *winch;
+  IntakeControl *intake;
 
   IO *io;
 
@@ -28,49 +38,75 @@ public:
   void RobotInit() {
     io = IO::get_instance(); // Refer to IO
 
-    drive = new Drivetrain<2>(io->left_motors, io->right_motors);
-    lift = new LiftControl();
-    // intake = new IntakeControl();
-    // claw = new ClawControl();
-
-    throttle = 0.6;
-    toggle_left_bumper = toggle_right_bumper = false;
+    drive = new Drivetrain(io->left_motors[0], io->right_motors[0], io->left_motors[0], io->right_motors[0]);
+    belev = new BelevatorControl();
+    intake = new IntakeControl();
+    winch = new WinchControl();
   }
 
-  void AutonomousInit() { }
-  void AutonomousPeriodic() { }
+  void AutonomousInit() {
+    cout << "Auto Init" << endl;
+    auto io = IO::get_instance();
+    io->navx->ZeroYaw();
 
-  void TeleopInit() { }
+    // Note: wheelbase width: 0.72
+    MotionProfileConfig mcfg = {
+      1440, 6,                  // enc ticks, wheel diameter inches
+      1.0 / 0.2, 0, 0,          // P, I, D
+      3.34 / 12.0, 0.76 / 12.0  // kV, kA
+    };
+    double kt = 3 * (1.0 / 80.0);
+
+    auto mode_left = std::make_shared<PathfinderMPMode>(
+      io->left_motors[0], mcfg, "/home/lvuser/paths/test_left.csv"
+    );
+    auto mode_right = std::make_shared<PathfinderMPMode>(
+      io->right_motors[0], mcfg, "/home/lvuser/paths/test_right.csv"
+    );
+    auto strat = std::make_shared<DrivetrainMotionProfileStrategy>(
+      mode_left, mode_right, drive,
+      io->navx, kt
+    );
+    drive->strategy_controller().set_active(strat);
+  }
+  void AutonomousPeriodic() {
+    drive->strategy_controller().periodic();
+    drive->log_write(); // Make this bit call only on mutates later *
+    belev->log_write();
+    intake->log_write();
+    //winch->log_write();
+  }
+
+  void TeleopInit() {
+    cout << "Teleop Init" << endl;
+    ControlMap::init();
+
+    auto strat = make_shared<DriveStarategy>(drive);
+    drive->strategy_controller().set_active(strat);
+  }
   void TeleopPeriodic() {
-    double output_left = math::square_keep_sign(io->get_left_y());
-    double output_right = math::square_keep_sign(io->get_right_y());
-    drive->set_left(output_left * throttle);
-    drive->set_right(output_right * throttle);
+    drive->strategy_controller().periodic();
 
-    lift->send_to_robot(io->get_right_trigger() - io->get_left_trigger()); // Right controls up, left controls down
-    // claw->send_to_robot(io->get_());
-    // intake->send_to_robot(io->get_right_bumper());
+    belev->send_to_robot(ControlMap::belevator_motor_power());
 
-    // Throttle Control
-    if(toggle_left_bumper != io->get_left_bumper()) { // Prevent registering as multiple presses
-      toggle_left_bumper = io->get_left_bumper();
-      if(toggle_left_bumper) { // Left bumper decreases throttle, while right increases throttle
-        throttle -= 0.1;
-        throttle = max(throttle, 0.1);
-        cout << "Throttle changed to " << throttle << endl;
-      }
-    } else if(toggle_right_bumper != io->get_right_bumper()) {
-      toggle_right_bumper = io->get_right_bumper();
-      if(toggle_right_bumper) {
-        throttle += 0.1;
-        throttle = min(throttle, 1.0);
-        cout << "Throttle changed to " << throttle << endl;
-      }
-    }
+    intake->send_to_robot(ControlMap::intake_claw_state());
+
+    winch->send_to_robot(ControlMap::winch_power());
+    // 14 changes to 5 cylinders reduce upstream from 120 to 60
   }
 
-  void TestInit() { }
-  void TestPeriodic() { }
+  void TestInit() {
+    auto io = IO::get_instance();
+    auto strat = std::make_shared<curtinfrc::MotionProfileTunerStrategy>(
+      io->left_motors[0], io->right_motors[0],
+      io->navx, 1440, 6
+    );
+    drive->strategy_controller().set_active(strat);
+  }
+
+  void TestPeriodic() {
+    drive->strategy_controller().periodic();
+  }
 };
 
 START_ROBOT_CLASS(Robot)
