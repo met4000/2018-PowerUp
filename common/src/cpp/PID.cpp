@@ -20,6 +20,8 @@ double PID::calculate(double input, double t) {
   double dt = t - last_time, output;
   last_time = t;
 
+  err = input - target;
+
   if (dt == 0) dt = 1;
   if (last_err == 0) last_err = err;
 
@@ -29,4 +31,4 @@ double PID::calculate(double input, double t) {
   return output;
 }
 
-bool PID::done(double input, double t) { return (err - last_err) / (t - last_time) < kde; }
+bool PID::done(double input, double t) { return (input - target - last_err) / (t - last_time) < kde; }
