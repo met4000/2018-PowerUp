@@ -8,10 +8,15 @@
 #include "IO.h"
 #include "Belev.h"
 #include "Map.h"
-#include "Intake.h"
-#include "Winch.h"
 #include "ControlMap.h"
-#include "DriveStarategy.h"
+#include "Auto.h"
+
+// Starategies
+#include "Starategies/DriveStarategy.h"
+#include "Starategies/AutoBelevStarategy.h"
+#include "Starategies/BelevStarategy.h"
+#include "Starategies/IntakeStarategy.h"
+#include "Starategies/TurnStarategy.h"
 
 // Other required libraries
 #include <string>
@@ -26,81 +31,65 @@ using namespace std;
 class Robot : public TimedRobot {
 public:
   Drivetrain *drive;
-
   BelevatorControl *belev;
-  WinchControl *winch;
-  IntakeControl *intake;
-
   IO *io;
+
+  AutoControl *auto_;
+
+  int belev_ticks;
 
   Robot() { }
 
   void RobotInit() {
-    io = IO::get_instance(); // Refer to IO
+    CameraServer::GetInstance()->StartAutomaticCapture();
 
+    io = IO::get_instance(); // Refer to IO
     drive = new Drivetrain(io->left_motors[0], io->right_motors[0], io->left_motors[0], io->right_motors[0]);
     belev = new BelevatorControl();
-    intake = new IntakeControl();
-    winch = new WinchControl();
+
+    auto_ = new AutoControl(drive);
+
+    belev_ticks = 0;
   }
 
   void AutonomousInit() {
     cout << "Auto Init" << endl;
-    auto io = IO::get_instance();
-    io->navx->ZeroYaw();
-
-    // Note: wheelbase width: 0.72
-    MotionProfileConfig mcfg = {
-      1440, 6,                  // enc ticks, wheel diameter inches
-      1.0 / 0.2, 0, 0,          // P, I, D
-      3.34 / 12.0, 0.76 / 12.0  // kV, kA
-    };
-    double kt = 3 * (1.0 / 80.0);
-
-    auto mode_left = std::make_shared<PathfinderMPMode>(
-      io->left_motors[0], mcfg, "/home/lvuser/paths/test_left.csv"
-    );
-    auto mode_right = std::make_shared<PathfinderMPMode>(
-      io->right_motors[0], mcfg, "/home/lvuser/paths/test_right.csv"
-    );
-    auto strat = std::make_shared<DrivetrainMotionProfileStrategy>(
-      mode_left, mode_right, drive,
-      io->navx, kt
-    );
-    drive->strategy_controller().set_active(strat);
+    auto_->init();
   }
   void AutonomousPeriodic() {
+    auto_->tick();
     drive->strategy_controller().periodic();
     drive->log_write(); // Make this bit call only on mutates later *
-    belev->log_write();
-    intake->log_write();
-    //winch->log_write();
+    // belev->log_write();
   }
 
   void TeleopInit() {
     cout << "Teleop Init" << endl;
     ControlMap::init();
 
-    auto strat = make_shared<DriveStarategy>(drive);
-    drive->strategy_controller().set_active(strat);
+    auto drive_strat = std::make_shared<DriveStarategy>(drive);
+    drive->strategy_controller().set_active(drive_strat);
+
+    auto belev_strat = make_shared<BelevStarategy>(belev);
+    belev->strategy_controller().set_active(belev_strat);
   }
   void TeleopPeriodic() {
+    SmartDashboard::PutNumber("Yaw", io->navx->GetYaw());
+
     drive->strategy_controller().periodic();
 
-    belev->send_to_robot(ControlMap::belevator_motor_power());
+    belev->strategy_controller().periodic();
+    belev->tick();
+    belev->claw(ControlMap::intake_claw_state());
+    belev->winch_mode(ControlMap::winch_shifter_state() ? BelevatorControl::Gear::High : BelevatorControl::Gear::Low);
 
-    intake->send_to_robot(ControlMap::intake_claw_state());
-
-    winch->send_to_robot(ControlMap::winch_power());
-    // 14 changes to 5 cylinders reduce upstream from 120 to 60
+    double intake_throttle = 0.5 * (IO::get_instance()->right_joy->GetRawAxis(3) - 1);
+    belev->intake(ControlMap::intake_motor_power() * intake_throttle);
+    SmartDashboard::PutNumber("Intake Throttle", -intake_throttle);
   }
 
   void TestInit() {
-    auto io = IO::get_instance();
-    auto strat = std::make_shared<curtinfrc::MotionProfileTunerStrategy>(
-      io->left_motors[0], io->right_motors[0],
-      io->navx, 1440, 6
-    );
+    auto strat = std::make_shared<TurnStarategy>(drive, 90, 0.5);
     drive->strategy_controller().set_active(strat);
   }
 

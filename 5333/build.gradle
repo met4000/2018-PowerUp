@@ -11,6 +11,8 @@ deploy {
         artifact("robotCode", jaci.openrio.gradle.frc.FRCNativeArtifact) {
             targets << "roborio5333"
             component = 'frcUserProgram'
+            predeploy << { execute 'rm frcUserProgram' }
+            debug = false
         }
         fileCollectionArtifact('paths') {
             files = project(':common').fileTree(dir: 'src/paths', include: '*.csv')
@@ -20,10 +22,18 @@ deploy {
     }
 }
 
+wpi {
+	ctreVersion = "5.2.2.0"
+    wpilibVersion = "2018.4.1"
+}
+
 model {
     components {
         frcUserProgram(NativeExecutableSpec) {
             targetPlatform 'roborio'
+            binaries.all {
+              cppCompiler.args << '-g'
+            }
             sources.cpp {
                 source {
                     srcDir 'src/cpp'
@@ -37,8 +47,8 @@ model {
                 lib library: "wpilib"
                 lib library: "ctre"
                 lib library: "navx"
-                lib library: "pathfinder"
                 lib library: "openrio.powerup.matchData"
+                lib library: "pathfinder"
                 lib project: ":common", library: "curtinFrcCommon", linkage: "static"
             }
         }
