@@ -60,16 +60,16 @@ double ControlMap::right_drive_power() {
   return right_power;
 }
 
-bool ControlMap::drive_reverse() { return IO::get_instance()->get_right_button(2); }
-
+bool ControlMap::drive_reverse() { return IO::get_instance()->get_right_button(2); }// make code better.
+// and ect
 double ControlMap::belevator_motor_power() {
   if (IO::get_instance()->get_right_button(10) || IO::get_instance()->get_right_button(9))
     return (int)IO::get_instance()->get_right_button(10) - (int)IO::get_instance()->get_right_button(9);
   return IO::get_instance()->get_left_Y();
 }
 
-double ControlMap::intake_motor_power() { return (int)IO::get_instance()->get_right_button(5) - (int)IO::get_instance()->get_right_button(3); }
-bool ControlMap::intake_claw_state() { return IO::get_instance()->get_right_button(7); }
+double ControlMap::intake_motor_power() { return (int)(IO::get_instance()->get_right_button(5)) - (int)(IO::get_instance()->get_right_button(1) || IO::get_instance()->get_right_button(3)); }
+bool ControlMap::intake_claw_state() { return IO::get_instance()->get_right_button(7) || IO::get_instance()->get_left_button(1); }
 
 bool ControlMap::winch_shifter_state() {
   if (shifter_toggle->apply(IO::get_instance()->get_right_button(6))) return (shifter_state = !shifter_state);

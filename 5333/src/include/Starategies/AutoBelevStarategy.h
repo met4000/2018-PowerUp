@@ -1,7 +1,5 @@
 #pragma once
 
-#include "WPILib.h"
-#include "curtinfrc/motors/CurtinTalonSRX.h"
 #include "curtinfrc/strategy/strategy.h"
 #include "curtinfrc/PID.h"
 
@@ -13,16 +11,25 @@ using namespace curtinfrc;
 
 class AutoBelevStarategy : public Strategy {
 public:
-  AutoBelevStarategy(BelevatorControl *_belev, float _position)
-    : pid_loop(Map::PID::Belev::kp, Map::PID::Belev::ki, Map::PID::Belev::kd, Map::PID::Belev::kde) {
-      belev = _belev;
-      pid_loop.set_target(_position * Map::Robot::belev_ticks_per_metre);
-    };
+  enum component {
+    Belevator,
+    Intake,
+    Claw
+  };
+
+  AutoBelevStarategy(BelevatorControl *_belev, component _part, double _power, int _t) {
+    belev = _belev;
+    part = _part;
+    power = _power;
+    t = _t;
+  };
   void start() override;
   void tick(double time) override;
   void stop() override;
 
 private:
   BelevatorControl *belev;
-  PID pid_loop;
+  component part;
+  double power;
+  int t;
 };

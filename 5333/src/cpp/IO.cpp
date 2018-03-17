@@ -39,11 +39,11 @@ int IO::init() { // Sets up IO
       intake_motors_right[0]->SetInverted(true);
     } else {
       intake_motors_left[n] = new CurtinTalonSRX(Map::Motors::intake_motors_left[n]);
-      intake_motors_left[n]->SetInverted(false);
+      intake_motors_left[n]->SetInverted(true);
       intake_motors_left[n]->SetDual(CurtinTalonSRX::ControlMode::Follower, intake_motors_left[0]->GetDeviceID());
 
       intake_motors_right[n] = new CurtinTalonSRX(Map::Motors::intake_motors_right[n]);
-      intake_motors_right[n]->SetInverted(true);
+      intake_motors_right[n]->SetInverted(false);
       intake_motors_right[n]->SetDual(CurtinTalonSRX::ControlMode::Follower, intake_motors_right[0]->GetDeviceID());
     }
   }

@@ -26,14 +26,14 @@ void DriveStarategy::tick(double time) {
   // Only move if joystick is not in deadzone
   if(fabs(ControlMap::left_drive_power()) > Map::Controllers::deadzone) {
     double output_left = ControlMap::drive_reverse() ? ControlMap::right_drive_power() : ControlMap::left_drive_power();
-    drive->set_left(output_left * throttle * (ControlMap::drive_reverse() ? -1 : 1));
+    drive->set_left(output_left * throttle * (ControlMap::drive_reverse() ? 0.6 : 1)); // Changed to half power
   } else {
     drive->set_left(0);
   }
 
   if(fabs(ControlMap::right_drive_power()) > Map::Controllers::deadzone) {
     double output_right = ControlMap::drive_reverse() ? ControlMap::left_drive_power() : ControlMap::right_drive_power();
-    drive->set_right(output_right * throttle * (ControlMap::drive_reverse() ? -1 : 1));
+    drive->set_right(output_right * throttle * (ControlMap::drive_reverse() ? 0.6 : 1)); // Changed to half power
   } else {
     drive->set_right(0);
   }

@@ -13,7 +13,6 @@ public:
 
   void tick();
   void lift(double power);
-  void winch_mode(Gear mode = Gear::High);
   void winch_brake(bool enabled);
   void claw(bool open);
   void intake(double left, double right);
@@ -22,6 +21,8 @@ public:
   curtinfrc::StrategyController &strategy_controller() {
     return BelevatorControl::strat_controller;
   }
+
+  int belev_position;
 
 private:
   curtinfrc::StrategyController strat_controller;

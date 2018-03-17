@@ -9,22 +9,38 @@
 #include "Map.h"
 #include "Belev.h"
 
-using namespace frc;
-using namespace std;
-
 void AutoBelevStarategy::start() {
-  belev->lift(0);
+  switch (part) {
+  case Belevator:
+    belev->lift(power);
+    break;
+
+  case Intake:
+    belev->intake(power);
+    break;
+
+  case Claw:
+    belev->claw(power >= 0.5);
+    break;
+  }
 }
 
 void AutoBelevStarategy::tick(double time) {
-  double pid_input = IO::get_instance()->belev_motors[0]->GetEncoder(), pid_output;
-
-  pid_output = pid_loop.calculate(pid_input, time);
-  if (pid_loop.done(pid_input, time)) this->done = true;
-
-  belev->lift(pid_output);
+  if (time > t) this->done = true;
 }
 
 void AutoBelevStarategy::stop() {
-  belev->lift(0);
+  switch (part) {
+  case Belevator:
+    belev->lift(0);
+    break;
+
+  case Intake:
+    belev->intake(0);
+    break;
+
+  case Claw:
+    belev->claw(0);
+    break;
+  }
 }

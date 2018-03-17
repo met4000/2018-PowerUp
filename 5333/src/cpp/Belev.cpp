@@ -11,10 +11,6 @@ void BelevatorControl::lift(double power) {
   IO::get_instance()->belev_motors[0]->Set(power);
 }
 
-void BelevatorControl::winch_mode(BelevatorControl::Gear mode) {
-  IO::get_instance()->shifter_solenoid->Set(mode == BelevatorControl::Gear::High ? DoubleSolenoid::Value::kForward : DoubleSolenoid::Value::kReverse);
-}
-
 void BelevatorControl::winch_brake(bool enabled) {
   IO::get_instance()->brake_solenoid->Set(enabled ? DoubleSolenoid::Value::kForward : DoubleSolenoid::Value::kReverse);
 }

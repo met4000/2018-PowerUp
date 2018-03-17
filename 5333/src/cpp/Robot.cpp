@@ -36,20 +36,30 @@ public:
 
   AutoControl *auto_;
 
-  int belev_ticks;
+  int t_belev;
 
   Robot() { }
 
   void RobotInit() {
-    CameraServer::GetInstance()->StartAutomaticCapture();
+    try {
+      CameraServer::GetInstance()->StartAutomaticCapture(0);
+    } catch (...) {
+      cout << "Front Camera failed to start" << endl;
+    }
+
+    try {
+      CameraServer::GetInstance()->StartAutomaticCapture(1);
+    } catch (...) {
+      cout << "Rear Camera failed to start" << endl;
+    }
 
     io = IO::get_instance(); // Refer to IO
     drive = new Drivetrain(io->left_motors[0], io->right_motors[0], io->left_motors[0], io->right_motors[0]);
     belev = new BelevatorControl();
 
-    auto_ = new AutoControl(drive);
+    auto_ = new AutoControl(drive, belev);
 
-    belev_ticks = 0;
+    io->shifter_solenoid->Set(DoubleSolenoid::Value::kForward);
   }
 
   void AutonomousInit() {
@@ -81,11 +91,10 @@ public:
     belev->strategy_controller().periodic();
     belev->tick();
     belev->claw(ControlMap::intake_claw_state());
-    belev->winch_mode(ControlMap::winch_shifter_state() ? BelevatorControl::Gear::High : BelevatorControl::Gear::Low);
 
-    double intake_throttle = 0.5 * (IO::get_instance()->right_joy->GetRawAxis(3) - 1);
-    belev->intake(ControlMap::intake_motor_power() * intake_throttle);
-    SmartDashboard::PutNumber("Intake Throttle", -intake_throttle);
+    double intake_throttle = -0.5 * (IO::get_instance()->right_joy->GetRawAxis(3) - 1);
+    belev->intake(ControlMap::intake_motor_power() * (0.5 + 0.5 * intake_throttle));
+    SmartDashboard::PutNumber("Intake Throttle", intake_throttle);
   }
 
   void TestInit() {
