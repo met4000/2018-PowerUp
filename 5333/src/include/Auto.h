@@ -1,6 +1,6 @@
 #pragma once
 
-#define BADAUTO true
+#define BADAUTO false
 
 #include "curtinfrc/drivetrain.h"
 #include <openrio/powerup/MatchData.h>

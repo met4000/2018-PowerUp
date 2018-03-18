@@ -13,6 +13,7 @@ public:
   };
 
   void start() override;
+  void tick(double time) override {};
 
 private:
   StrategyController *controller;

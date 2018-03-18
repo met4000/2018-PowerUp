@@ -27,8 +27,11 @@ double ControlMap::left_drive_power() {
 
   if (IO::get_instance()->get_right_button(4)) left_power = 1;
   else {
+    double r_const = IO::get_instance()->get_right_button(2) ? 0.4 : 0.6;
+
     double f_speed = IO::get_instance()->get_right_Y();
-    double r_speed = -(IO::get_instance()->get_right_X() * 0.5) - (IO::get_instance()->get_right_X() * IO::get_instance()->get_right_twist() * IO::get_instance()->get_right_twist() * (1 - 0.5));
+    double r_speed = -(IO::get_instance()->get_right_X() * r_const) - (IO::get_instance()->get_right_X() * IO::get_instance()->get_right_twist() * IO::get_instance()->get_right_twist() * (1 - r_const));
+    r_speed *= 1;
 
     if (f_speed >= 0.0) {
       left_power = r_speed >= 0.0 ? f_speed - r_speed : max(f_speed, -r_speed);
@@ -46,8 +49,11 @@ double ControlMap::right_drive_power() {
 
   if (IO::get_instance()->get_right_button(4)) right_power = 1;
   else {
+    double r_const = IO::get_instance()->get_right_button(2) ? 0.4 : 0.6;
+    
     double f_speed = IO::get_instance()->get_right_Y();
-    double r_speed = -(IO::get_instance()->get_right_X() * 0.5) - (IO::get_instance()->get_right_X() * IO::get_instance()->get_right_twist() * IO::get_instance()->get_right_twist() * (1 - 0.5));
+    double r_speed = -(IO::get_instance()->get_right_X() * r_const) - (IO::get_instance()->get_right_X() * IO::get_instance()->get_right_twist() * IO::get_instance()->get_right_twist() * (1 - r_const));
+    r_speed *= 1;
 
     if (f_speed > 0.0) {
       right_power = r_speed > 0.0 ? max(f_speed, r_speed) : f_speed + r_speed;

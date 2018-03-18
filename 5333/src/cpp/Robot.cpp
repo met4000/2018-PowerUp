@@ -12,15 +12,18 @@
 #include "Auto.h"
 
 // Starategies
-#include "Starategies/DriveStarategy.h"
 #include "Starategies/AutoBelevStarategy.h"
 #include "Starategies/BelevStarategy.h"
+#include "Starategies/DriveStarategy.h"
+#include "Starategies/ExternalStarategy.h"
 #include "Starategies/IntakeStarategy.h"
 #include "Starategies/TurnStarategy.h"
+#include "Starategies/WaitStarategy.h"
 
 // Other required libraries
 #include <string>
 #include <SmartDashboard/SmartDashboard.h>
+#include <SmartDashboard/SendableChooser.h>
 #include <iostream>
 #include <stdint.h>
 #include <cmath>
@@ -35,12 +38,17 @@ public:
   IO *io;
 
   AutoControl *auto_;
-
-  int t_belev;
+  unique_ptr<int> autoNum;
+  SendableChooser<int*> chooser;
 
   Robot() { }
 
   void RobotInit() {
+    chooser.AddDefault("Bad Auto", new int(0));
+    chooser.AddObject("Auto A", new int(1));
+    chooser.AddObject("Auto B", new int(2));
+    SmartDashboard::PutData("Auto Modes", &chooser);
+
     try {
       CameraServer::GetInstance()->StartAutomaticCapture(0);
     } catch (...) {
@@ -63,14 +71,43 @@ public:
   }
 
   void AutonomousInit() {
-    cout << "Auto Init" << endl;
+    // belev->strategy_controller().set_active(make_shared<AutoBelevStarategy>(belev, AutoBelevStarategy::component::Claw, 0));
+    // belev->strategy_controller().append(make_shared<WaitStarategy>(1000));
+    // belev->strategy_controller().append(std::make_shared<AutoBelevStarategy>(belev, AutoBelevStarategy::component::Belevator, 0.8, 1800));
+    // belev->strategy_controller().append(
+    //   std::make_shared<ExternalStarategy>(belev->strategy_controller, std::make_shared<AutoBelevStarategy>(belev, AutoBelevStarategy::component::Claw, 1))
+    // );
+
+    // cout << "Auto Init" << endl;
+    //
+    // autoNum.reset(chooser.GetSelected());
+    //
+    // if (autoNum.get() != nullptr) {
+    //   switch (*autoNum) {
+    //   case 0:
+    //     break;
+    //
+    //   case 1:
+    //     break;
+    //
+    //   case 2:
+    //     break;
+    //   }
+    // }
+    //
     auto_->init();
   }
   void AutonomousPeriodic() {
-    auto_->tick();
-    drive->strategy_controller().periodic();
-    drive->log_write(); // Make this bit call only on mutates later *
-    // belev->log_write();
+    // belev->strategy_controller().periodic();
+
+    // if (autoNum.get() != nullptr) {
+      auto_->tick();
+    //   drive->log_write(); // Make this bit call only on mutates later *
+    //   // belev->log_write();
+    // } else {
+    //   // drive->set_left(0);
+    //   // drive->set_right(0);
+    // }
   }
 
   void TeleopInit() {
@@ -93,7 +130,8 @@ public:
     belev->claw(ControlMap::intake_claw_state());
 
     double intake_throttle = -0.5 * (IO::get_instance()->right_joy->GetRawAxis(3) - 1);
-    belev->intake(ControlMap::intake_motor_power() * (0.5 + 0.5 * intake_throttle));
+    double intake_min = 0.75;
+    belev->intake(ControlMap::intake_motor_power() * ((intake_min) + (1 - intake_min) * intake_throttle));
     SmartDashboard::PutNumber("Intake Throttle", intake_throttle);
   }
 

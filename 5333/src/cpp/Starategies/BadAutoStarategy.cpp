@@ -9,9 +9,10 @@
 
 using namespace std;
 
-BadAutoStarategy::BadAutoStarategy(Drivetrain *_drive, double _throttle) {
+BadAutoStarategy::BadAutoStarategy(Drivetrain *_drive, double _power, int _t) {
   drive = _drive;
-  throttle = _throttle;
+  power = _power;
+  t = _t;
 }
 
 void BadAutoStarategy::start() {
@@ -20,20 +21,17 @@ void BadAutoStarategy::start() {
 
   IO::get_instance()->left_motors[0]->SetSelectedSensorPosition(0, 0, 0);
   IO::get_instance()->right_motors[0]->SetSelectedSensorPosition(0, 0, 0);
-
-
-  SmartDashboard::PutNumber("Throttle:", throttle);
 }
 
 void BadAutoStarategy::tick(double time) {
-  if (time < 3000) { // FORWARD TIME
+  if (time < t) { // FORWARD TIME
     double kp = 0.3;
 
-    double err = -IO::get_instance()->left_motors[0]->GetSelectedSensorPosition(0)/1440.0f + IO::get_instance()->right_motors[0]->GetSelectedSensorPosition(0)/1000.0f;
+    double err = IO::get_instance()->left_motors[0]->GetSelectedSensorPosition(0)/1440.0f - IO::get_instance()->right_motors[0]->GetSelectedSensorPosition(0)/1000.0f;
     err *= kp;
     cout << err << endl;
-    drive->set_left(-(0.6 - err));
-    drive->set_right(-(0.6 + err));
+    drive->set_left((power - err));
+    drive->set_right((power + err));
   } else {
     this->done = true;
     drive->set_left(0);

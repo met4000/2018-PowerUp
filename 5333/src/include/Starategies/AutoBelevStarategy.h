@@ -17,7 +17,7 @@ public:
     Claw
   };
 
-  AutoBelevStarategy(BelevatorControl *_belev, component _part, double _power, int _t) {
+  AutoBelevStarategy(BelevatorControl *_belev, component _part, double _power, int _t = 0) {
     belev = _belev;
     part = _part;
     power = _power;

@@ -38,9 +38,5 @@ void AutoBelevStarategy::stop() {
   case Intake:
     belev->intake(0);
     break;
-
-  case Claw:
-    belev->claw(0);
-    break;
   }
 }

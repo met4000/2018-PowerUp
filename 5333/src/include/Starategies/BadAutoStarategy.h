@@ -7,12 +7,13 @@ using namespace curtinfrc;
 
 class BadAutoStarategy : public Strategy {
 public:
-  BadAutoStarategy(Drivetrain *_drive, double _throttle = 0.6f);
+  BadAutoStarategy(Drivetrain *_drive, double _power, int _t);
   void start() override;
   void tick(double time) override;
   void stop() override;
 
 private:
   Drivetrain *drive;
-  double throttle;
+  double power;
+  int t;
 };
