@@ -10,11 +10,11 @@ using namespace curtinfrc;
 
 class BelevStarategy : public Strategy {
 public:
-  BelevStarategy(BelevatorControl *_belev);
+  BelevStarategy(std::shared_ptr<BelevatorControl> _belev);
   void start() override;
   void tick(double time) override;
   void stop() override;
 
 private:
-  BelevatorControl *belev;
+  std::shared_ptr<BelevatorControl> belev;
 };

@@ -1,35 +1,24 @@
 #pragma once
 
-#include "curtinfrc/strategy/strategy.h"
-#include "curtinfrc/PID.h"
+#include "curtinfrc/strategy/AutoStrategy.h"
 
-#include "../Map.h"
 #include "../Belev.h"
 
-using namespace frc;
 using namespace curtinfrc;
 
-class AutoBelevStarategy : public Strategy {
+class AutoBelevStarategy : public AutoStrategy {
 public:
-  enum component {
+  enum components {
     Belevator,
     Intake,
     Claw
   };
 
-  AutoBelevStarategy(BelevatorControl *_belev, component _part, double _power, int _t = 0) {
-    belev = _belev;
-    part = _part;
-    power = _power;
-    t = _t;
-  };
+  using AutoStrategy::AutoStrategy;
+
   void start() override;
-  void tick(double time) override;
   void stop() override;
 
 private:
-  BelevatorControl *belev;
-  component part;
-  double power;
-  int t;
+  std::shared_ptr<BelevatorControl> component;
 };

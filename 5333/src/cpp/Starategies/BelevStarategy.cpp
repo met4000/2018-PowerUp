@@ -9,7 +9,7 @@
 
 using namespace std;
 
-BelevStarategy::BelevStarategy(BelevatorControl *_belev) {
+BelevStarategy::BelevStarategy(shared_ptr<BelevatorControl> _belev) {
   belev = _belev;
 }
 

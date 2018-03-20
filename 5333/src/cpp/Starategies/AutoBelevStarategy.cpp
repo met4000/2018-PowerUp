@@ -12,31 +12,27 @@
 void AutoBelevStarategy::start() {
   switch (part) {
   case Belevator:
-    belev->lift(power);
+    component->lift(power);
     break;
 
   case Intake:
-    belev->intake(power);
+    component->intake(power);
     break;
 
   case Claw:
-    belev->claw(power >= 0.5);
+    component->claw(power >= 0.5);
     break;
   }
-}
-
-void AutoBelevStarategy::tick(double time) {
-  if (time > t) this->done = true;
 }
 
 void AutoBelevStarategy::stop() {
   switch (part) {
   case Belevator:
-    belev->lift(0);
+    component->lift(0);
     break;
 
   case Intake:
-    belev->intake(0);
+    component->intake(0);
     break;
   }
 }

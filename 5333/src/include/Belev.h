@@ -1,8 +1,11 @@
 #pragma once
 
 #include "curtinfrc/strategy/strategy.h"
+#include "curtinfrc/component/Component.h"
 
-class BelevatorControl {
+using namespace curtinfrc;
+
+class BelevatorControl : public Component {
 public:
   BelevatorControl() {};
 
@@ -11,19 +14,12 @@ public:
     Low
   };
 
-  void tick();
+  void tick() override;
   void lift(double power);
   void winch_brake(bool enabled);
   void claw(bool open);
   void intake(double left, double right);
   void intake(double power);
 
-  curtinfrc::StrategyController &strategy_controller() {
-    return BelevatorControl::strat_controller;
-  }
-
   int belev_position;
-
-private:
-  curtinfrc::StrategyController strat_controller;
 };

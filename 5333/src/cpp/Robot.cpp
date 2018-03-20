@@ -34,7 +34,7 @@ using namespace std;
 class Robot : public TimedRobot {
 public:
   Drivetrain *drive;
-  BelevatorControl *belev;
+  shared_ptr<BelevatorControl> belev;
   IO *io;
 
   AutoControl *auto_;
@@ -63,7 +63,7 @@ public:
 
     io = IO::get_instance(); // Refer to IO
     drive = new Drivetrain(io->left_motors[0], io->right_motors[0], io->left_motors[0], io->right_motors[0]);
-    belev = new BelevatorControl();
+    belev = make_shared<BelevatorControl>();
 
     auto_ = new AutoControl(drive, belev);
 

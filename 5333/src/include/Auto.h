@@ -12,11 +12,11 @@ using namespace OpenRIO::PowerUp;
 
 class AutoControl {
 public:
-  AutoControl(Drivetrain *_drive, BelevatorControl *_belev);
+  AutoControl(Drivetrain *_drive, std::shared_ptr<BelevatorControl> _belev);
   void init();
   void tick();
 private:
   MatchData::OwnedSide near_switch, scale, far_switch;
   Drivetrain *drive;
-  BelevatorControl *belev;
+  std::shared_ptr<BelevatorControl> belev;
 };
